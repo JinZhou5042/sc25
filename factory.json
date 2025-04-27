@@ -1,0 +1,11 @@
+{
+    "manager-name": "jzhou24-hgg7",
+    "max-workers": 30,
+    "min-workers": 30,
+    "workers-per-cycle": 30,
+    "condor-requirements": "((has_vast)",
+    "cores": 32,
+    "memory": 16*1024,
+    "disk": 800*1024,
+    "timeout": 36000
+}
