@@ -98,17 +98,13 @@ samples/
 
 ### 2. Download Input Data (Example)
 
-From the main project directory (`sc25`), download data into the `samples` subdirectory.
+From the main project directory (`sc25`), run the provided script to download the necessary datasets. The script will place the data into the `samples/` subdirectory.
 
 ```bash
-# From the 'sc25' directory
-cd samples
-# Example: Download data (replace with actual source/commands)
-# curl -O https://example.com/data.tar.gz && tar xzf data.tar.gz
-# wget https://example.com/data.tar.gz && tar xzf data.tar.gz
-# cp /path/to/your/data/*.root .
-cd .. # Return to the 'sc25' project directory
+# Ensure you are in the 'sc25' project directory
+bash download_datasets.sh
 ```
+This script handles the downloading and extraction of the required ROOT files.
 
 ### 3. Dataset Management
 
@@ -305,8 +301,4 @@ Ensure your Jupyter environment has access to the necessary Python packages (lik
 -   **Output/Log Directories:** `output/` and TaskVine run info dir (`--run-info-path` effective location) are created automatically.
 -   **`--show-samples`:** Use to confirm dataset names before using `--sub-dataset`.
 -   **`--sporadic-failure` Argument:** Not part of `ecf_calculator.py`; likely for external TaskVine worker testing.
-<<<<<<< HEAD
 -   **Resource Matching:** Keep `factory.json` (`cores`) and `ecf_calculator.py` (`lib_resources`) synchronized. 
-=======
--   **Resource Matching:** Keep `factory.json` (`cores`) and `ecf_calculator.py` (`lib_resources`) synchronized. 
->>>>>>> 8180fad (test)
