@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+=======
+
+>>>>>>> 8180fad (test)
 # ECF Calculator for High Energy Physics Analysis
 
 Framework for calculating Energy Correlation Functions (ECFs) and other jet substructure variables using Dask and TaskVine for distributed computation in High Energy Physics (HEP).
@@ -305,4 +309,8 @@ Ensure your Jupyter environment has access to the necessary Python packages (lik
 -   **Output/Log Directories:** `output/` and TaskVine run info dir (`--run-info-path` effective location) are created automatically.
 -   **`--show-samples`:** Use to confirm dataset names before using `--sub-dataset`.
 -   **`--sporadic-failure` Argument:** Not part of `ecf_calculator.py`; likely for external TaskVine worker testing.
+<<<<<<< HEAD
 -   **Resource Matching:** Keep `factory.json` (`cores`) and `ecf_calculator.py` (`lib_resources`) synchronized. 
+=======
+-   **Resource Matching:** Keep `factory.json` (`cores`) and `ecf_calculator.py` (`lib_resources`) synchronized. 
+>>>>>>> 8180fad (test)
