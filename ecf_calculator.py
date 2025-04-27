@@ -464,9 +464,20 @@ if __name__ == "__main__":
     parser.add_argument('--sub-dataset', type=str, default='hgg', help='Specify which sub-dataset to process (default: hgg)')
     parser.add_argument('--checkpoint-to', type=str, help='Save tasks to the specified file path using cloudpickle')
     parser.add_argument('--load-from', type=str, help='Load tasks from the specified file path instead of computing them')
-    parser.add_argument('--manager-name', type=str, default=f"{user_name}-hgg7", help='Set the manager name (default: hgg7)')
+    parser.add_argument('--manager-name', type=str, default=f"{user_name}-hgg7", help='Set the manager name (default: {user}-hgg7)')
 
-    parser.add_argument('--template', type=str, help='Template name to use for run_info_template (will be created as a folder)')
+    # Determine default run_info_path based on username
+    if user_name == 'jzhou24':
+        default_run_path = f"/afs/crc.nd.edu/user/{user_name[0]}/{user_name}/taskvine-report-tool/logs"
+        default_help_text = 'Directory to store TaskVine run logs and reports. Defaults to specific AFS path for user jzhou24, falls back to ./vine-run-info if inaccessible.'
+    else:
+        default_run_path = "vine-run-info"
+        default_help_text = 'Directory to store TaskVine run logs and reports. Defaults to ./vine-run-info. Falls back to ./vine-run-info if specified path is inaccessible.'
+
+    parser.add_argument('--run-info-path', type=str, 
+                        default=default_run_path, 
+                        help=default_help_text)
+    parser.add_argument('--template', type=str, help='Template name to use for run_info_template (will be created as a folder under run_info_path)')
     parser.add_argument('--enforce-template', action='store_true', help='Force overwrite template directory without confirmation')
     parser.add_argument('--wait-for-workers', type=int, help='Number of seconds to wait for workers')
     
@@ -492,28 +503,13 @@ if __name__ == "__main__":
         print("Error: --checkpoint-to and --load-from cannot be used together.")
         sys.exit(1)
     
-    # Define run_info_path and check if it exists
-    default_run_info_path = f"/afs/crc.nd.edu/user/{user_name[0]}/{user_name}/taskvine-report-tool/logs"
-    if os.path.exists(default_run_info_path):
-        run_info_path = default_run_info_path
-    else:
-        run_info_path = "vine-run-info"
-        print(f"Default path {default_run_info_path} not found. Using {run_info_path} instead.")
-        if not os.path.exists(run_info_path):
-            try:
-                os.makedirs(run_info_path, exist_ok=True)
-                print(f"Created directory: {run_info_path}")
-            except Exception as e:
-                print(f"Error creating directory: {e}")
-                sys.exit(1)
-    
     # Handle the template argument using the ensure_template function
-    run_info_template = ensure_template(args.template, run_info_path)
+    run_info_template = ensure_template(args.template, args.run_info_path)
 
     m = DaskVine(
         [9123, 9128],
         name=args.manager_name,
-        run_info_path=run_info_path,
+        run_info_path=args.run_info_path,
         run_info_template=run_info_template,
         staging_path="/tmp/jzhou",
     )

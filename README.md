@@ -59,7 +59,7 @@ Create a poncho package of the conda environment for TaskVine workers. Run this 
 ```bash
 # Ensure you are on a shared filesystem
 # Package the 'dv5' conda environment
-poncho_package_create $CONDA_PREFIX sc25_env.tar.gz
+poncho_package_create $CONDA_PREFIX dv5.tar.gz
 ```
 *This might take some time.*
 
@@ -94,7 +94,7 @@ samples/
 │   └── file3.root
 └── ...
 ```
--   **Default Path:** The script defaults to `/project01/ndcms/jzhou24/samples`. Modify `samples_path` in `ecf_calculator.py` if your data is elsewhere.
+-   **Default Path:** The script defaults to an example path like `/project01/ndcms/jzhou24/samples`. You will likely need to modify the `samples_path` variable inside `ecf_calculator.py` if your data resides elsewhere.
 
 ### 2. Download Input Data (Example)
 
@@ -165,14 +165,14 @@ Separate task graph generation from execution.
     Add `--checkpoint-to <filename.pkl>` to an analysis command. Saves the graph without execution.
     ```bash
     # Generate tasks for all datasets (ECF n<=5) and save
-    python ecf_calculator.py --all --ecf-upper-bound 5 --checkpoint-to my_tasks_ecf5.pkl
+    python ecf_calculator.py --all --ecf-upper-bound 5 --checkpoint-to tasks.pkl
     ```
 
 2.  **Load and Execute Task Graph:**
     Use `--load-from <filename.pkl>` instead of dataset selection arguments.
     ```bash
     # Load the graph and execute
-    python ecf_calculator.py --load-from my_tasks_ecf5.pkl --temp-replica-count 2
+    python ecf_calculator.py --load-from tasks.pkl --temp-replica-count 2
     ```
     *`--checkpoint-to` and `--load-from` are mutually exclusive.*
 
@@ -183,14 +183,14 @@ Fine-tune TaskVine interaction during task execution.
 **Manager Connection & Run Logging:**
 
 -   `--manager-name <name>`: Connect to a specific TaskVine manager (default: `{user}-hgg7`).
--   `--template <template_name>`: Create a subdirectory `<template_name>` within the TaskVine `run_info_path` for logs/reports. Uses `/afs/crc.nd.edu/...` first, falls back to `./vine-run-info`.
+-   `--run-info-path <path>`: Directory for TaskVine logs/reports. The script may default to a pre-configured shared path (e.g., on AFS) if available and writable in certain environments, otherwise it defaults to `./vine-run-info`. If the specified or default path is inaccessible, it falls back to `./vine-run-info`.
+-   `--template <template_name>`: Create a subdirectory `<template_name>` within the effective `run_info_path` for logs/reports.
 -   `--enforce-template`: Overwrite the `--template` directory if it exists.
 
 **General Tuning:**
 
 -   `--wait-for-workers <seconds>`: Wait time for workers before starting.
--   `--disable-worker-join-after-first-run`: Prevent new workers from joining mid-computation.
--   `--max-workers <count>`: Limit max workers (default: 30000).
+-   `--max-workers <count>`: Limit max workers (default: unlimited).
 
 **Fault Tolerance:**
 
@@ -201,8 +201,6 @@ Fine-tune TaskVine interaction during task execution.
 **Performance & Scheduling:**
 
 -   `--load-balancing`: Enable dynamic load balancing.
--   `--load-balancing-interval <seconds>`: Frequency (s) for load balancing checks (default: 3). Requires `--load-balancing`.
--   `--load-balancing-factor <factor>`: Target ratio for worker queue load (default: 1.1). Requires `--load-balancing`.
 -   `--prune-depth <depth>`: Dask graph pruning depth (default: 0).
 -   `--scheduling-mode <mode>`: Task scheduling strategy (default: `LIFO`).
 
@@ -226,9 +224,9 @@ Fine-tune TaskVine interaction during task execution.
     # 1. Preprocess (if needed)
     python ecf_calculator.py --preprocess
     # 2. Generate and save task graph
-    python ecf_calculator.py --all --ecf-upper-bound 5 --checkpoint-to all_tasks_ecf5.pkl
+    python ecf_calculator.py --all --ecf-upper-bound 5 --checkpoint-to tasks.pkl
     # 3. Load graph and run
-    python ecf_calculator.py --load-from all_tasks_ecf5.pkl --temp-replica-count 3 --template run_rep3 --manager-name my-manager
+    python ecf_calculator.py --load-from tasks.pkl --temp-replica-count 3 --template run_rep3 --manager-name my-manager
     ```
 
 4.  **Batch Experiments:**
@@ -248,12 +246,54 @@ output/
 └── ...
 ```
 
+## Running Paper Experiments
+
+The following batch scripts correspond to the experiments presented in the accompanying paper. They are designed to test different aspects of TaskVine's performance and fault tolerance features.
+
+**Prerequisite:** Before running any batch script, ensure you have generated the necessary task graph file (typically `tasks.pkl`). This is done using the `--checkpoint-to` argument with `ecf_calculator.py`, for example:
+
+```bash
+# Generate tasks for all datasets (ECF n<=5) and save to tasks.pkl
+python ecf_calculator.py --all --ecf-upper-bound 5 --checkpoint-to tasks.pkl
+```
+
+### 1. Checkpointing and Replication Experiments
+
+These scripts evaluate TaskVine's checkpointing mechanism and data replication for fault tolerance.
+
+```bash
+# Run replication experiments (varying --temp-replica-count)
+bash run_batch_replication.sh
+
+# Run checkpointing experiments (varying --checkpoint-threshold)
+bash run_batch_checkpoint.sh
+```
+
+### 2. Load Balancing Experiment
+
+This script tests the dynamic load balancing feature.
+
+```bash
+# Run load balancing experiment (enabling --load-balancing)
+bash run_batch_load_balancing.sh
+```
+
+### 3. Storage Consumption Experiment
+
+This script investigates aspects related to storage usage during computation.
+
+```bash
+# Run storage consumption related experiment
+bash run_batch_storage_consumption.sh
+```
+Each batch script will typically run `ecf_calculator.py` multiple times with different tuning parameters, loading the task graph from `tasks.pkl` and using the `--template` argument to organize logs for each specific run configuration within the TaskVine run info directory.
+
 ## Important Notes
 
 -   **Preprocessing:** Run `--preprocess` if `samples_ready.json` is missing or data directory changes. Preprocessing only creates the JSON.
 -   **TaskVine Setup:** Requires a running TaskVine manager and connected workers.
--   **Paths:** Adapt paths for your environment: input data (in `ecf_calculator.py`), TaskVine run info, poncho package location (shared filesystem).
--   **Output/Log Directories:** `output/` and TaskVine run info dir are created automatically.
+-   **Paths:** Adapt paths for your environment: input data (`samples_path` in `ecf_calculator.py`), TaskVine run info (`--run-info-path`, defaults may vary by environment), poncho package location (shared filesystem).
+-   **Output/Log Directories:** `output/` and TaskVine run info dir (`--run-info-path` effective location) are created automatically.
 -   **`--show-samples`:** Use to confirm dataset names before using `--sub-dataset`.
 -   **`--sporadic-failure` Argument:** Not part of `ecf_calculator.py`; likely for external TaskVine worker testing.
 -   **Resource Matching:** Keep `factory.json` (`cores`) and `ecf_calculator.py` (`lib_resources`) synchronized. 
